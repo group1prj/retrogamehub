@@ -281,7 +281,7 @@ canvas#gameCanvas {
 }
 
 #mobile-controls {
-  display: flex;
+  display: none; /* Always hidden by default, shown only by JS if mobile */
   flex-direction: column;
   align-items: center;
   margin-bottom: 18px;
