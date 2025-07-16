@@ -26,6 +26,12 @@ const scoreboardTableBody = document.getElementById('scoreboardTableBody');
 
 let currentPlayerName = "";
 
+// ========== Mobile Device Detection ==========
+function isMobileDevice() {
+  // Checks for mobile/tablet, not desktops/laptops
+  return /android|iphone|ipad|ipod|opera mini|iemobile|wpdesktop/i.test(navigator.userAgent);
+}
+
 // ========== Game Variables ==========
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
@@ -378,6 +384,7 @@ playerNameInput.addEventListener('keydown', (e) => {
 });
 
 // ========== Menu Show/Hide ==========
+// Only show mobile controls on mobile devices!
 function showMainMenu() {
   mainMenu.style.display = '';
   customizeMenu.style.display = 'none';
@@ -385,7 +392,7 @@ function showMainMenu() {
   scoreDiv.style.display = 'none';
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
-  mobileControls.style.display = 'none';
+  mobileControls.style.display = 'none'; // Always hidden in main menu
   renderScoreboardTable();
 }
 function showCustomize() {
@@ -395,7 +402,7 @@ function showCustomize() {
   scoreDiv.style.display = 'none';
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
-  mobileControls.style.display = 'none';
+  mobileControls.style.display = 'none'; // Always hidden in customize
   colorBtns.forEach(btn => {
     if (btn.dataset.color.toLowerCase() === snakeColor.toLowerCase()) {
       btn.classList.add('selected');
@@ -414,7 +421,12 @@ function showGame() {
   scoreDiv.style.display = '';
   restartBtn.style.display = '';
   backBtn.style.display = '';
-  mobileControls.style.display = '';
+  // Show mobile controls ONLY if on mobile
+  if (isMobileDevice()) {
+    mobileControls.style.display = '';
+  } else {
+    mobileControls.style.display = 'none';
+  }
 }
 
 function showNameModal() {
