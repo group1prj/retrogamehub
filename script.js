@@ -49,8 +49,15 @@ const FRUIT_EMOJIS = ["🍎", "🍏"];
 const CHERRY_EMOJI = "🍒";
 const CHERRY_BONUS = 5; // Points for cherry
 let appleFruit = { x: 0, y: 0, type: FRUIT_EMOJIS[0] };
-let cherryFruit = { x: 0, y: 0, type: CHERRY_EMOJI };
+let cherryFruit = { x: 0, y: 0, type: CHERRY_EMOJI, visible: false };
 let nextAppleColor = 0; // 0 = red, 1 = green
+
+// === Cherry Timers ===
+let cherryTimer = null;
+let cherryTimeout = null;
+const CHERRY_PRESENT_TIME = 5000; // ms the cherry stays visible
+const CHERRY_RESPAWN_MIN = 10000; // min ms until next cherry
+const CHERRY_RESPAWN_MAX = 20000; // max ms until next cherry
 
 // === Pulsing Animation Variables ===
 let pulseStartTime = Date.now();
@@ -158,29 +165,30 @@ function initGame() {
   isGameOver = false;
   nextAppleColor = 0;
   placeApple();
-  placeCherry();
+  removeCherry();
   scoreDiv.textContent = "Score: 0";
   clearInterval(gameLoop);
-  gameLoop = setInterval(gameTick, 100);
+  clearTimeout(cherryTimer);
+  clearTimeout(cherryTimeout);
+  scheduleCherry();
   pulseStartTime = Date.now();
   requestAnimationFrame(drawAnimated);
 }
 
-function randomFruitPosition(exclude = []) {
-  let valid = false, pos = {x: 0, y: 0};
-  while (!valid) {
-    pos = {
-      x: Math.floor(Math.random() * tileCount),
-      y: Math.floor(Math.random() * tileCount)
-    };
-    valid = !snake.some(segment => segment.x === pos.x && segment.y === pos.y)
-      && !exclude.some(e => e.x === pos.x && e.y === pos.y);
-  }
-  return pos;
+function scheduleCherry() {
+  clearTimeout(cherryTimeout);
+  cherryTimeout = setTimeout(() => {
+    placeCherry();
+    cherryFruit.visible = true;
+    cherryTimer = setTimeout(() => {
+      removeCherry();
+      scheduleCherry();
+    }, CHERRY_PRESENT_TIME);
+  }, Math.random() * (CHERRY_RESPAWN_MAX - CHERRY_RESPAWN_MIN) + CHERRY_RESPAWN_MIN);
 }
 
 function placeApple() {
-  const pos = randomFruitPosition([cherryFruit]);
+  const pos = randomFruitPosition(cherryFruit.visible ? [cherryFruit] : []);
   appleFruit.x = pos.x;
   appleFruit.y = pos.y;
   appleFruit.type = FRUIT_EMOJIS[nextAppleColor];
@@ -192,6 +200,24 @@ function placeCherry() {
   cherryFruit.x = pos.x;
   cherryFruit.y = pos.y;
   cherryFruit.type = CHERRY_EMOJI;
+  cherryFruit.visible = true;
+}
+
+function removeCherry() {
+  cherryFruit.visible = false;
+}
+
+function randomFruitPosition(exclude = []) {
+  let valid = false, pos = {x: 0, y: 0};
+  while (!valid) {
+    pos = {
+      x: Math.floor(Math.random() * tileCount),
+      y: Math.floor(Math.random() * tileCount)
+    };
+    valid = !snake.some(segment => segment.x === pos.x && segment.y === pos.y)
+      && !exclude.some(e => e.x === pos.x && e.y === pos.y && e.visible !== false);
+  }
+  return pos;
 }
 
 function gameTick() {
@@ -220,10 +246,12 @@ function gameTick() {
     ate = true;
     if (eatSound) { eatSound.currentTime = 0; eatSound.play(); }
   }
-  if (head.x === cherryFruit.x && head.y === cherryFruit.y) {
+  if (cherryFruit.visible && head.x === cherryFruit.x && head.y === cherryFruit.y) {
     score += CHERRY_BONUS;
     scoreDiv.textContent = `Score: ${score}`;
-    placeCherry();
+    removeCherry();
+    clearTimeout(cherryTimer);
+    scheduleCherry();
     ate = true;
     if (eatSound) { eatSound.currentTime = 0; eatSound.play(); }
   }
@@ -232,7 +260,6 @@ function gameTick() {
   }
 }
 
-// ========== Draw Both Fruits with Pulse Animation ==========
 function drawAnimated() {
   draw();
   if (!isGameOver) {
@@ -247,7 +274,6 @@ function draw() {
 
   let t = (Date.now() - pulseStartTime) / 400;
   let pulseApple = 1 + Math.sin(t) * 0.13;
-  let pulseCherry = 1 + Math.sin(t + Math.PI/2) * 0.13;
 
   drawFruitEmoji(
     appleFruit.type,
@@ -255,12 +281,16 @@ function draw() {
     appleFruit.y * gridSize + (gridSize - gridSize * pulseApple) / 2,
     gridSize * pulseApple
   );
-  drawFruitEmoji(
-    cherryFruit.type,
-    cherryFruit.x * gridSize + (gridSize - gridSize * pulseCherry) / 2,
-    cherryFruit.y * gridSize + (gridSize - gridSize * pulseCherry) / 2,
-    gridSize * pulseCherry
-  );
+
+  if (cherryFruit.visible) {
+    let pulseCherry = 1 + Math.sin(t + Math.PI/2) * 0.13;
+    drawFruitEmoji(
+      cherryFruit.type,
+      cherryFruit.x * gridSize + (gridSize - gridSize * pulseCherry) / 2,
+      cherryFruit.y * gridSize + (gridSize - gridSize * pulseCherry) / 2,
+      gridSize * pulseCherry
+    );
+  }
 
   for (let i = snake.length - 1; i > 0; i--) {
     drawSnakeSegmentSquare(snake[i].x * gridSize, snake[i].y * gridSize, snakeColor, false);
@@ -509,6 +539,8 @@ scaleColorPicker.addEventListener('input', () => {
 function endGame() {
   isGameOver = true;
   clearInterval(gameLoop);
+  clearTimeout(cherryTimer);
+  clearTimeout(cherryTimeout);
   draw();
   if (currentPlayerName && currentPlayerName.length > 1 && score > 0) {
     saveScore({ name: currentPlayerName, score }).then(renderScoreboardTable);
