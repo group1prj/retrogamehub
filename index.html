@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=500, initial-scale=1.0"/>
+  <title>Retro Game Hub</title>
+  <!-- Pixel font for titles and buttons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Tailwind for grid (optional, can remove if not used elsewhere) -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+  <!-- AOS for scroll animations -->
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <!-- Custom styles -->
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+  <header class="header-center">
+    <div class="header-content">
+      <h1 class="pixel-title mb-3">RETRO GAME HUB</h1>
+      <p class="subtitle">
+        Relive the classics. Play Snake, Tetris &amp; more!
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <!-- Game Card: Snake -->
+    <div class="retro-card" data-aos="fade-up">
+      <img src="snake.svg" alt="Snake" class="thumbnail pixel-art">
+      <h2 class="game-title">Snake</h2>
+      <p class="game-desc">
+        The timeless snake game, now in your browser!
+      </p>
+      <a href="Snake.html">
+        <button class="pixel-btn">Play Snake</button>
+      </a>
+    </div>
+    <!-- Game Card: Tetris -->
+    <div class="retro-card" data-aos="fade-up" data-aos-delay="100">
+      <img src="tetris.png" alt="Tetris" class="thumbnail pixel-art">
+      <h2 class="game-title">Tetris</h2>
+      <p class="game-desc">
+        Stack the blocks. Clear lines. Relive the 80s!
+      </p>
+      <a href="games/tetris.html">
+        <button class="pixel-btn">Play Tetris</button>
+      </a>
+    </div>
+    <!-- Add more game cards here -->
+  </main>
+
+  <footer>
+    &copy; 2025 Retro Game Hub. Powered by nostalgia.
+  </footer>
+
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
