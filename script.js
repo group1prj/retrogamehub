@@ -28,7 +28,6 @@ let currentPlayerName = "";
 
 // ========== Mobile Device Detection ==========
 function isMobileDevice() {
-  // Checks for mobile/tablet, not desktops/laptops
   return /android|iphone|ipad|ipod|opera mini|iemobile|wpdesktop/i.test(navigator.userAgent);
 }
 
@@ -423,7 +422,7 @@ function showGame() {
   backBtn.style.display = '';
   // Show mobile controls ONLY if on mobile
   if (isMobileDevice()) {
-    mobileControls.style.display = '';
+    mobileControls.style.display = 'flex';
   } else {
     mobileControls.style.display = 'none';
   }
