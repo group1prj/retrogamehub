@@ -298,14 +298,18 @@ canvas#gameCanvas {
   color: #f6d55c;
   border: 2.5px solid #00f2ea;
   border-radius: 8px;
-  width: 50px;
-  height: 50px;
-  font-size: 1.5rem;
+  width: 70px;
+  height: 70px;
+  font-size: 2.2rem;
   margin: 4px;
   cursor: pointer;
   touch-action: manipulation;
   box-shadow: 1px 2px 6px #00f2ea44;
   transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 .mobile-btn:active {
   background: #f72585;
@@ -345,6 +349,21 @@ canvas#gameCanvas {
     font-size: 0.98rem;
     padding: 10px 10px;
   }
+  #mobile-controls {
+    margin-bottom: 8vw;
+  }
+  .mobile-btn {
+    width: 18vw;
+    height: 18vw;
+    font-size: 7vw;
+    min-width: 54px;
+    min-height: 54px;
+    max-width: 80px;
+    max-height: 80px;
+  }
+  .mobile-row {
+    gap: 6vw;
+  }
 }
 ::-webkit-scrollbar {
   background: #24243e;
@@ -362,28 +381,4 @@ input[type="color"] {
   height: 34px;
   margin-left: 9px;
   cursor: pointer;
-}
-/* ... other styles ... */
-.mobile-btn {
-  font-family: 'Press Start 2P', monospace;
-  background: #1b1b25;
-  color: #f6d55c;
-  border: 2.5px solid #00f2ea;
-  border-radius: 8px;
-  width: 70px;
-  height: 70px;
-  font-size: 2.2rem;
-  margin: 4px;
-  cursor: pointer;
-  touch-action: manipulation;
-  box-shadow: 1px 2px 6px #00f2ea44;
-  transition: background 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-.mobile-btn:active {
-  background: #f72585;
-  color: #fff;
 }
