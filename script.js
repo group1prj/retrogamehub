@@ -24,6 +24,11 @@ const nameDoneBtn = document.getElementById('nameDoneBtn');
 const nameError = document.getElementById('nameError');
 const scoreboardTableBody = document.getElementById('scoreboardTableBody');
 
+// === Audio Elements ===
+const bgMusic = document.getElementById('bg-music');
+const eatSound = document.getElementById('eat-sound');
+if(bgMusic) { bgMusic.volume = 0.08; }
+
 let currentPlayerName = "";
 
 // ========== Mobile Device Detection ==========
@@ -34,15 +39,26 @@ function isMobileDevice() {
 // ========== Game Variables ==========
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
-let snake, direction, nextDirection, food, score, gameLoop, isGameOver;
+let snake, direction, nextDirection, score, gameLoop, isGameOver;
 let snakeColor = localStorage.getItem('snakeColor') || '#3ca6a6';
 let headColor = localStorage.getItem('headColor') || '#f6d55c';
 let scaleColor = localStorage.getItem('scaleColor') || '#aaffee';
 
+// === Fruit Variables ===
+const FRUIT_EMOJIS = ["🍎", "🍏"];
+const CHERRY_EMOJI = "🍒";
+const CHERRY_BONUS = 5; // Points for cherry
+let appleFruit = { x: 0, y: 0, type: FRUIT_EMOJIS[0] };
+let cherryFruit = { x: 0, y: 0, type: CHERRY_EMOJI };
+let nextAppleColor = 0; // 0 = red, 1 = green
+
+// === Pulsing Animation Variables ===
+let pulseStartTime = Date.now();
+
 // ========== Scoreboard Storage ==========
 const USE_API = false; // set to true to use a REST API, false for browser localStorage
-const API_URL = "https://api.jsonbin.io/v3/b/665cda3eacd3cb34a847c4f3"; // Example: replace with your own bin!
-const API_KEY = ""; // If your JSONBIN requires a key, put here
+const API_URL = "https://api.jsonbin.io/v3/b/665cda3eacd3cb34a847c4f3";
+const API_KEY = "";
 
 async function getScoreboardAPI() {
   try {
@@ -76,7 +92,6 @@ function getScoreboardLocal() {
   } catch {
     arr = [];
   }
-  // Filter out bad entries (defensive)
   arr = arr.filter(
     s => s && typeof s.name === "string" && typeof s.score === "number"
   );
@@ -101,10 +116,8 @@ async function saveScore(newEntry) {
 }
 
 // ========== Highscore Table Rendering ==========
-// Always renders 10 rows, showing "---" for empty slots, and sorts/filter data first.
 async function renderScoreboardTable() {
   let scores = await getScoreboard();
-  // Defensive: filter out undefined/malformed, and sort
   scores = (scores || []).filter(
     s => s && typeof s.name === "string" && typeof s.score === "number"
   );
@@ -143,22 +156,42 @@ function initGame() {
   nextDirection = 'right';
   score = 0;
   isGameOver = false;
-  placeFood();
+  nextAppleColor = 0;
+  placeApple();
+  placeCherry();
   scoreDiv.textContent = "Score: 0";
   clearInterval(gameLoop);
   gameLoop = setInterval(gameTick, 100);
-  draw();
+  pulseStartTime = Date.now();
+  requestAnimationFrame(drawAnimated);
 }
 
-function placeFood() {
-  let valid = false;
+function randomFruitPosition(exclude = []) {
+  let valid = false, pos = {x: 0, y: 0};
   while (!valid) {
-    food = {
+    pos = {
       x: Math.floor(Math.random() * tileCount),
       y: Math.floor(Math.random() * tileCount)
     };
-    valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+    valid = !snake.some(segment => segment.x === pos.x && segment.y === pos.y)
+      && !exclude.some(e => e.x === pos.x && e.y === pos.y);
   }
+  return pos;
+}
+
+function placeApple() {
+  const pos = randomFruitPosition([cherryFruit]);
+  appleFruit.x = pos.x;
+  appleFruit.y = pos.y;
+  appleFruit.type = FRUIT_EMOJIS[nextAppleColor];
+  nextAppleColor = 1 - nextAppleColor;
+}
+
+function placeCherry() {
+  const pos = randomFruitPosition([appleFruit]);
+  cherryFruit.x = pos.x;
+  cherryFruit.y = pos.y;
+  cherryFruit.type = CHERRY_EMOJI;
 }
 
 function gameTick() {
@@ -178,14 +211,33 @@ function gameTick() {
     return;
   }
   snake.unshift(head);
-  if (head.x === food.x && head.y === food.y) {
+
+  let ate = false;
+  if (head.x === appleFruit.x && head.y === appleFruit.y) {
     score += 1;
     scoreDiv.textContent = `Score: ${score}`;
-    placeFood();
-  } else {
+    placeApple();
+    ate = true;
+    if (eatSound) { eatSound.currentTime = 0; eatSound.play(); }
+  }
+  if (head.x === cherryFruit.x && head.y === cherryFruit.y) {
+    score += CHERRY_BONUS;
+    scoreDiv.textContent = `Score: ${score}`;
+    placeCherry();
+    ate = true;
+    if (eatSound) { eatSound.currentTime = 0; eatSound.play(); }
+  }
+  if (!ate) {
     snake.pop();
   }
+}
+
+// ========== Draw Both Fruits with Pulse Animation ==========
+function drawAnimated() {
   draw();
+  if (!isGameOver) {
+    requestAnimationFrame(drawAnimated);
+  }
 }
 
 function draw() {
@@ -193,7 +245,22 @@ function draw() {
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  drawApple(food.x * gridSize, food.y * gridSize, gridSize);
+  let t = (Date.now() - pulseStartTime) / 400;
+  let pulseApple = 1 + Math.sin(t) * 0.13;
+  let pulseCherry = 1 + Math.sin(t + Math.PI/2) * 0.13;
+
+  drawFruitEmoji(
+    appleFruit.type,
+    appleFruit.x * gridSize + (gridSize - gridSize * pulseApple) / 2,
+    appleFruit.y * gridSize + (gridSize - gridSize * pulseApple) / 2,
+    gridSize * pulseApple
+  );
+  drawFruitEmoji(
+    cherryFruit.type,
+    cherryFruit.x * gridSize + (gridSize - gridSize * pulseCherry) / 2,
+    cherryFruit.y * gridSize + (gridSize - gridSize * pulseCherry) / 2,
+    gridSize * pulseCherry
+  );
 
   for (let i = snake.length - 1; i > 0; i--) {
     drawSnakeSegmentSquare(snake[i].x * gridSize, snake[i].y * gridSize, snakeColor, false);
@@ -214,6 +281,17 @@ function draw() {
     ctx.font = "20px 'Press Start 2P', monospace";
     ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 25);
   }
+}
+
+function drawFruitEmoji(emoji, x, y, size) {
+  ctx.save();
+  ctx.font = `${size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = (emoji === CHERRY_EMOJI) ? "#f72585" : "#3ca6a6";
+  ctx.shadowBlur = 16;
+  ctx.fillText(emoji, x + size/2, y + size/2);
+  ctx.restore();
 }
 
 function drawSnakeSegmentSquare(x, y, color, isHead = false) {
@@ -249,37 +327,6 @@ function drawSnakeSegmentSquare(x, y, color, isHead = false) {
     ctx.fill();
     ctx.restore();
   }
-  ctx.restore();
-}
-
-function drawApple(x, y, size) {
-  ctx.save();
-  ctx.translate(x + size / 2, y + size / 2);
-  ctx.beginPath();
-  ctx.ellipse(0, 0, size * 0.38, size * 0.44, 0, 0, 2 * Math.PI);
-  const grad = ctx.createRadialGradient(0, 0, size * 0.13, 0, 0, size * 0.44);
-  grad.addColorStop(0, "#fff");
-  grad.addColorStop(0.2, "#ff6e6e");
-  grad.addColorStop(1, "#c20000");
-  ctx.fillStyle = grad;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(-size * 0.11, -size * 0.12, size * 0.08, size * 0.17, 0, 0, 2 * Math.PI);
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  ctx.fill();
-  ctx.save();
-  ctx.rotate(-0.5);
-  ctx.beginPath();
-  ctx.ellipse(size * 0.13, -size * 0.25, size * 0.11, size * 0.04, Math.PI / 6, 0, 2 * Math.PI);
-  ctx.fillStyle = "#2ecc40";
-  ctx.fill();
-  ctx.restore();
-  ctx.beginPath();
-  ctx.moveTo(0, -size * 0.28);
-  ctx.lineTo(0, -size * 0.39);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "#815c35";
-  ctx.stroke();
   ctx.restore();
 }
 
@@ -344,7 +391,6 @@ restartBtn.addEventListener('click', () => {
 });
 
 // ========== Menu Navigation ==========
-// Play button: show game canvas, then show name modal
 playBtn.addEventListener('click', () => {
   showGame();
   showNameModal();
@@ -357,7 +403,6 @@ backBtn.addEventListener('click', () => {
   showMainMenu();
   clearInterval(gameLoop);
 });
-// Modal: enter name then start game
 nameDoneBtn.addEventListener('click', () => {
   const name = (playerNameInput.value || "").trim();
   if (!name) {
@@ -383,7 +428,6 @@ playerNameInput.addEventListener('keydown', (e) => {
 });
 
 // ========== Menu Show/Hide ==========
-// Only show mobile controls on mobile devices!
 function showMainMenu() {
   mainMenu.style.display = '';
   customizeMenu.style.display = 'none';
@@ -391,7 +435,7 @@ function showMainMenu() {
   scoreDiv.style.display = 'none';
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
-  mobileControls.style.display = 'none'; // Always hidden in main menu
+  mobileControls.style.display = 'none';
   renderScoreboardTable();
 }
 function showCustomize() {
@@ -401,7 +445,7 @@ function showCustomize() {
   scoreDiv.style.display = 'none';
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
-  mobileControls.style.display = 'none'; // Always hidden in customize
+  mobileControls.style.display = 'none';
   colorBtns.forEach(btn => {
     if (btn.dataset.color.toLowerCase() === snakeColor.toLowerCase()) {
       btn.classList.add('selected');
@@ -420,7 +464,6 @@ function showGame() {
   scoreDiv.style.display = '';
   restartBtn.style.display = '';
   backBtn.style.display = '';
-  // Show mobile controls ONLY if on mobile
   if (isMobileDevice()) {
     mobileControls.style.display = 'flex';
   } else {
@@ -463,7 +506,6 @@ scaleColorPicker.addEventListener('input', () => {
 });
 
 // ========== End Game & Save Score ==========
-// Returns to home after 2 seconds, and always renders 10 rows in table.
 function endGame() {
   isGameOver = true;
   clearInterval(gameLoop);
