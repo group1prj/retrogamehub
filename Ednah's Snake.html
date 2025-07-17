@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Snake Game</title>
+  <link href="style-e.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body class="theme-classic">
+  <div class="game-container">
+    <h1 class="game-title">🐍 Snake Game</h1>
+    
+    <div class="game-info">
+      <div class="info-item">
+        <h2 id="score">Score: 0</h2>
+      </div>
+      <div class="info-item">
+        <h2 id="timer">Time: 00:00</h2>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <label for="themeSelect">Theme:</label>
+      <select id="themeSelect" class="theme-selector">
+        <option value="classic">Classic</option>
+        <option value="neon">Neon</option>
+        <option value="forest">Forest</option>
+        <option value="ocean">Ocean</option>
+      </select>
+    </div>
+    
+    <div class="game-area">
+      <canvas id="game" width="400" height="400"></canvas>
+      <button id="restartBtn" class="restart-btn" style="display: none;">
+        🔄 Restart Game
+      </button>
+    </div>
+    
+    <div class="instructions">
+      <p>🎯 Goal: Reach 200 points to win!</p>
+      <p>⌨️ Use arrow keys to control the snake</p>
+      <p>🍎 Eat red food to grow and score points</p>
+    </div>
+  </div>
+
+  <script src="script-e.js"></script>
+</body>
+
+</html>
