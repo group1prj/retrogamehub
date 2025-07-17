@@ -40,7 +40,6 @@ if (!levelDiv) {
   levelDiv.style.borderRadius = "8px";
   levelDiv.style.padding = "6px 18px";
   levelDiv.style.display = "none";
-  // Insert after scoreDiv or before if mobile
   scoreDiv.parentNode.insertBefore(levelDiv, scoreDiv.nextSibling);
 }
 
@@ -54,7 +53,7 @@ function isMobileDevice() {
 // ========== Game Variables ==========
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
-let snake, direction, nextDirection, food, score, gameLoop, isGameOver;
+let snake, direction, nextDirection, score, gameLoop, isGameOver;
 let snakeColor = localStorage.getItem('snakeColor') || '#3ca6a6';
 let headColor = localStorage.getItem('headColor') || '#f6d55c';
 let scaleColor = localStorage.getItem('scaleColor') || '#aaffee';
@@ -64,6 +63,20 @@ let level = 1;
 let pointsToNextLevel = 20;
 let obstacles = [];
 const OBSTACLE_COLOR = "#e94f37";
+
+// ========== Fruit Variables ==========
+const FRUIT_EMOJIS = ["🍎", "🍏"];
+const CHERRY_EMOJI = "🍒";
+const CHERRY_BONUS = 3;
+let appleFruit = { x: 0, y: 0, type: FRUIT_EMOJIS[0] };
+let nextAppleColor = 0; // 0 = red, 1 = green
+let cherryFruit = { x: 0, y: 0, visible: false };
+let cherryTimer = null;
+let cherryTimeout = null;
+const CHERRY_PRESENT_TIME = 5000; // ms the cherry stays visible
+const CHERRY_RESPAWN_TIME = 5000; // ms until next cherry
+
+let pulseStartTime = Date.now();
 
 // ========== Scoreboard Storage ==========
 const USE_API = false;
@@ -175,7 +188,7 @@ function placeObstacles(count) {
     };
     if (
       !snake.some(seg => seg.x === pos.x && seg.y === pos.y) &&
-      !(food && food.x === pos.x && food.y === pos.y) &&
+      !((appleFruit.x === pos.x && appleFruit.y === pos.y) || (cherryFruit.visible && cherryFruit.x === pos.x && cherryFruit.y === pos.y)) &&
       !obstacles.some(o => o.x === pos.x && o.y === pos.y)
     ) {
       obstacles.push(pos);
@@ -190,6 +203,58 @@ function showLevelDisplay(show = true) {
   }
 }
 
+// ========== Fruit Placement and Cherry Timer ==========
+function placeApple() {
+  let valid = false, pos;
+  while (!valid) {
+    pos = {
+      x: Math.floor(Math.random() * tileCount),
+      y: Math.floor(Math.random() * tileCount)
+    };
+    valid =
+      !snake.some(segment => segment.x === pos.x && segment.y === pos.y) &&
+      !obstacles.some(o => o.x === pos.x && o.y === pos.y) &&
+      !(cherryFruit.visible && cherryFruit.x === pos.x && cherryFruit.y === pos.y);
+  }
+  appleFruit.x = pos.x;
+  appleFruit.y = pos.y;
+  appleFruit.type = FRUIT_EMOJIS[nextAppleColor];
+  nextAppleColor = 1 - nextAppleColor;
+}
+
+function placeCherry() {
+  let valid = false, pos;
+  while (!valid) {
+    pos = {
+      x: Math.floor(Math.random() * tileCount),
+      y: Math.floor(Math.random() * tileCount)
+    };
+    valid =
+      !snake.some(segment => segment.x === pos.x && segment.y === pos.y) &&
+      !obstacles.some(o => o.x === pos.x && o.y === pos.y) &&
+      !(appleFruit.x === pos.x && appleFruit.y === pos.y);
+  }
+  cherryFruit.x = pos.x;
+  cherryFruit.y = pos.y;
+  cherryFruit.visible = true;
+}
+
+function removeCherry() {
+  cherryFruit.visible = false;
+}
+
+function scheduleCherry() {
+  clearTimeout(cherryTimeout);
+  cherryTimeout = setTimeout(() => {
+    placeCherry();
+    cherryFruit.visible = true;
+    cherryTimer = setTimeout(() => {
+      removeCherry();
+      scheduleCherry();
+    }, CHERRY_PRESENT_TIME);
+  }, CHERRY_RESPAWN_TIME);
+}
+
 // ========== Game Functions ==========
 function initGame() {
   level = 1;
@@ -198,25 +263,17 @@ function initGame() {
   resetSnake();
   score = 0;
   isGameOver = false;
-  placeFood();
+  placeApple();
+  removeCherry();
   scoreDiv.textContent = "Score: 0";
   showLevelDisplay(true);
   clearInterval(gameLoop);
+  clearTimeout(cherryTimer);
+  clearTimeout(cherryTimeout);
+  scheduleCherry();
+  pulseStartTime = Date.now();
   gameLoop = setInterval(gameTick, 100);
   draw();
-}
-
-function placeFood() {
-  let valid = false;
-  while (!valid) {
-    food = {
-      x: Math.floor(Math.random() * tileCount),
-      y: Math.floor(Math.random() * tileCount)
-    };
-    valid =
-      !snake.some(segment => segment.x === food.x && segment.y === food.y) &&
-      !obstacles.some(o => o.x === food.x && o.y === food.y);
-  }
 }
 
 function gameTick() {
@@ -245,24 +302,48 @@ function gameTick() {
   }
 
   snake.unshift(head);
-  if (head.x === food.x && head.y === food.y) {
+
+  let ate = false;
+  if (head.x === appleFruit.x && head.y === appleFruit.y) {
     score += 1;
     scoreDiv.textContent = `Score: ${score}`;
-    // Level up if needed
+    placeApple();
+    ate = true;
     if (score >= pointsToNextLevel) {
       level++;
       pointsToNextLevel += 20;
       resetSnake();
-      if (level > 1) placeObstacles(2 + level); // New obstacles for next level
+      if (level > 1) placeObstacles(2 + level);
       showLevelDisplay();
-      placeFood();
-    } else {
-      placeFood();
+      placeApple();
     }
-  } else {
+  }
+  if (cherryFruit.visible && head.x === cherryFruit.x && head.y === cherryFruit.y) {
+    score += CHERRY_BONUS;
+    scoreDiv.textContent = `Score: ${score}`;
+    removeCherry();
+    clearTimeout(cherryTimer);
+    scheduleCherry();
+    ate = true;
+  }
+  if (!ate) {
     snake.pop();
   }
   draw();
+}
+
+// ========== Drawing Functions ==========
+function drawEmoji(emoji, x, y, size, bounceAmount = 0.13, bounceSpeed = 400, phase = 0) {
+  let t = (Date.now() - pulseStartTime) / bounceSpeed + phase;
+  let scale = 1 + Math.sin(t) * bounceAmount;
+  ctx.save();
+  ctx.font = `${size * scale}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = emoji === CHERRY_EMOJI ? "#f72585" : "#3ca6a6";
+  ctx.shadowBlur = 16;
+  ctx.fillText(emoji, x + size/2, y + size/2);
+  ctx.restore();
 }
 
 function draw() {
@@ -279,7 +360,29 @@ function draw() {
     ctx.strokeRect(o.x * gridSize, o.y * gridSize, gridSize, gridSize);
   });
 
-  drawApple(food.x * gridSize, food.y * gridSize, gridSize);
+  // Bouncing apples
+  drawEmoji(
+    appleFruit.type,
+    appleFruit.x * gridSize,
+    appleFruit.y * gridSize,
+    gridSize,
+    0.13,
+    400,
+    0
+  );
+
+  // Bouncing cherry if visible
+  if (cherryFruit.visible) {
+    drawEmoji(
+      CHERRY_EMOJI,
+      cherryFruit.x * gridSize,
+      cherryFruit.y * gridSize,
+      gridSize,
+      0.13,
+      400,
+      Math.PI / 2
+    );
+  }
 
   for (let i = snake.length - 1; i > 0; i--) {
     drawSnakeSegmentSquare(snake[i].x * gridSize, snake[i].y * gridSize, snakeColor, false);
@@ -335,37 +438,6 @@ function drawSnakeSegmentSquare(x, y, color, isHead = false) {
     ctx.fill();
     ctx.restore();
   }
-  ctx.restore();
-}
-
-function drawApple(x, y, size) {
-  ctx.save();
-  ctx.translate(x + size / 2, y + size / 2);
-  ctx.beginPath();
-  ctx.ellipse(0, 0, size * 0.38, size * 0.44, 0, 0, 2 * Math.PI);
-  const grad = ctx.createRadialGradient(0, 0, size * 0.13, 0, 0, size * 0.44);
-  grad.addColorStop(0, "#fff");
-  grad.addColorStop(0.2, "#ff6e6e");
-  grad.addColorStop(1, "#c20000");
-  ctx.fillStyle = grad;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(-size * 0.11, -size * 0.12, size * 0.08, size * 0.17, 0, 0, 2 * Math.PI);
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  ctx.fill();
-  ctx.save();
-  ctx.rotate(-0.5);
-  ctx.beginPath();
-  ctx.ellipse(size * 0.13, -size * 0.25, size * 0.11, size * 0.04, Math.PI / 6, 0, 2 * Math.PI);
-  ctx.fillStyle = "#2ecc40";
-  ctx.fill();
-  ctx.restore();
-  ctx.beginPath();
-  ctx.moveTo(0, -size * 0.28);
-  ctx.lineTo(0, -size * 0.39);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "#815c35";
-  ctx.stroke();
   ctx.restore();
 }
 
@@ -551,6 +623,8 @@ scaleColorPicker.addEventListener('input', () => {
 function endGame() {
   isGameOver = true;
   clearInterval(gameLoop);
+  clearTimeout(cherryTimer);
+  clearTimeout(cherryTimeout);
   draw();
   if (currentPlayerName && currentPlayerName.length > 1 && score > 0) {
     saveScore({ name: currentPlayerName, score }).then(renderScoreboardTable);
