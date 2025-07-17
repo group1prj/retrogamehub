@@ -58,7 +58,8 @@ let snake, direction, nextDirection, food, score, gameLoop, isGameOver;
 let snakeColor = localStorage.getItem('snakeColor') || '#3ca6a6';
 let headColor = localStorage.getItem('headColor') || '#f6d55c';
 let scaleColor = localStorage.getItem('scaleColor') || '#aaffee';
-// Levels & Obstacles
+
+// ========== Level & Obstacle Variables ==========
 let level = 1;
 let pointsToNextLevel = 20;
 let obstacles = [];
@@ -165,14 +166,13 @@ function resetSnake() {
   nextDirection = 'right';
 }
 
-function generateObstacles(count) {
+function placeObstacles(count) {
   obstacles = [];
   while (obstacles.length < count) {
     let pos = {
       x: Math.floor(Math.random() * tileCount),
       y: Math.floor(Math.random() * tileCount)
     };
-    // Avoid snake, food, and duplicate obstacles
     if (
       !snake.some(seg => seg.x === pos.x && seg.y === pos.y) &&
       !(food && food.x === pos.x && food.y === pos.y) &&
@@ -183,9 +183,11 @@ function generateObstacles(count) {
   }
 }
 
-function updateLevelDisplay(show = true) {
-  levelDiv.textContent = `Level: ${level}`;
-  levelDiv.style.display = show ? "" : "none";
+function showLevelDisplay(show = true) {
+  if (levelDiv) {
+    levelDiv.textContent = `Level: ${level}`;
+    levelDiv.style.display = show ? '' : 'none';
+  }
 }
 
 // ========== Game Functions ==========
@@ -198,7 +200,7 @@ function initGame() {
   isGameOver = false;
   placeFood();
   scoreDiv.textContent = "Score: 0";
-  updateLevelDisplay(true);
+  showLevelDisplay(true);
   clearInterval(gameLoop);
   gameLoop = setInterval(gameTick, 100);
   draw();
@@ -251,9 +253,8 @@ function gameTick() {
       level++;
       pointsToNextLevel += 20;
       resetSnake();
-      // Add easy random obstacles, not too many
-      generateObstacles(2 + level); // For example, Level 2: 4, Level 3: 5...
-      updateLevelDisplay();
+      if (level > 1) placeObstacles(2 + level); // New obstacles for next level
+      showLevelDisplay();
       placeFood();
     } else {
       placeFood();
@@ -273,7 +274,6 @@ function draw() {
   ctx.fillStyle = OBSTACLE_COLOR;
   obstacles.forEach(o => {
     ctx.fillRect(o.x * gridSize, o.y * gridSize, gridSize, gridSize);
-    // Optional: add border for visibility
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 1;
     ctx.strokeRect(o.x * gridSize, o.y * gridSize, gridSize, gridSize);
@@ -475,7 +475,7 @@ function showMainMenu() {
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
   mobileControls.style.display = 'none';
-  updateLevelDisplay(false);
+  showLevelDisplay(false);
   renderScoreboardTable();
 }
 function showCustomize() {
@@ -486,7 +486,7 @@ function showCustomize() {
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
   mobileControls.style.display = 'none';
-  updateLevelDisplay(false);
+  showLevelDisplay(false);
   colorBtns.forEach(btn => {
     if (btn.dataset.color.toLowerCase() === snakeColor.toLowerCase()) {
       btn.classList.add('selected');
@@ -505,7 +505,7 @@ function showGame() {
   scoreDiv.style.display = '';
   restartBtn.style.display = '';
   backBtn.style.display = '';
-  updateLevelDisplay(true);
+  showLevelDisplay(true);
   if (isMobileDevice()) {
     mobileControls.style.display = '';
   } else {
