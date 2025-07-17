@@ -56,6 +56,7 @@
 
   <!-- Gameplay UI -->
   <div class="gameplay-ui glass-game">
+    <div id="levelDisplay" style="display:none"></div>
     <canvas id="gameCanvas" width="480" height="480" style="display:none;"></canvas>
     <div id="score" class="neon-score" style="display:none;">Score: 0</div>
     <div class="hud-buttons">
@@ -63,7 +64,7 @@
       <button class="retro-btn danger" id="backBtn" style="display:none;">Back</button>
     </div>
     <!-- On-Screen Controls -->
-    <div id="mobile-controls">
+    <div id="mobile-controls" style="display:none;">
       <div class="mobile-row">
         <button class="mobile-btn" id="btnUp">&#8593;</button>
       </div>
@@ -84,10 +85,6 @@
       <button class="retro-btn" id="nameDoneBtn">Done</button>
     </div>
   </div>
-
-  <!-- Background Music and Eat Sound -->
-  <audio id="bg-music" src="background.mp3" loop autoplay></audio>
-  <audio id="eat-sound" src="eat.mp3"></audio>
 
   <footer class="footer-retro">
     <span>Retro Snake &copy; 2025</span>
