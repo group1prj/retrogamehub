@@ -27,7 +27,7 @@ const scoreboardTableBody = document.getElementById('scoreboardTableBody');
 // === Audio Elements ===
 const bgMusic = document.getElementById('bg-music');
 const eatSound = document.getElementById('eat-sound');
-if(bgMusic) { bgMusic.volume = 0.08; }
+if (bgMusic) { bgMusic.volume = 0.08; }
 
 let currentPlayerName = "";
 
@@ -69,7 +69,7 @@ const API_KEY = "";
 
 async function getScoreboardAPI() {
   try {
-    const res = await fetch(API_URL, API_KEY ? {headers: {'X-Access-Key': API_KEY}} : undefined);
+    const res = await fetch(API_URL, API_KEY ? { headers: { 'X-Access-Key': API_KEY } } : undefined);
     const data = await res.json();
     return data.record || [];
   } catch {
@@ -87,7 +87,7 @@ async function saveScoreAPI(newEntry) {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      ...(API_KEY ? {'X-Access-Key': API_KEY} : {})
+      ...(API_KEY ? { 'X-Access-Key': API_KEY } : {})
     },
     body: JSON.stringify(scores)
   });
@@ -142,13 +142,13 @@ async function renderScoreboardTable() {
     if (i === 0) tr.classList.add("top1");
     else if (i === 1) tr.classList.add("top2");
     else if (i === 2) tr.classList.add("top3");
-    tr.innerHTML = `<td>${i+1}</td><td>${name}</td><td>${score}</td>`;
+    tr.innerHTML = `<td>${i + 1}</td><td>${name}</td><td>${score}</td>`;
     scoreboardTableBody.appendChild(tr);
   }
 }
 function escapeHTML(str) {
-  return (str||"").replace(/[&<>"']/g, m => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  return (str || "").replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[m]);
 }
 
@@ -173,6 +173,9 @@ function initGame() {
   scheduleCherry();
   pulseStartTime = Date.now();
   requestAnimationFrame(drawAnimated);
+
+  // Start the main game loop
+  gameLoop = setInterval(gameTick, 120); // Snake moves every 120 ms
 }
 
 function scheduleCherry() {
@@ -208,7 +211,7 @@ function removeCherry() {
 }
 
 function randomFruitPosition(exclude = []) {
-  let valid = false, pos = {x: 0, y: 0};
+  let valid = false, pos = { x: 0, y: 0 };
   while (!valid) {
     pos = {
       x: Math.floor(Math.random() * tileCount),
@@ -283,7 +286,7 @@ function draw() {
   );
 
   if (cherryFruit.visible) {
-    let pulseCherry = 1 + Math.sin(t + Math.PI/2) * 0.13;
+    let pulseCherry = 1 + Math.sin(t + Math.PI / 2) * 0.13;
     drawFruitEmoji(
       cherryFruit.type,
       cherryFruit.x * gridSize + (gridSize - gridSize * pulseCherry) / 2,
@@ -320,7 +323,7 @@ function drawFruitEmoji(emoji, x, y, size) {
   ctx.textBaseline = "middle";
   ctx.shadowColor = (emoji === CHERRY_EMOJI) ? "#f72585" : "#3ca6a6";
   ctx.shadowBlur = 16;
-  ctx.fillText(emoji, x + size/2, y + size/2);
+  ctx.fillText(emoji, x + size / 2, y + size / 2);
   ctx.restore();
 }
 
