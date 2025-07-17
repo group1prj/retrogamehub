@@ -24,11 +24,6 @@ const nameDoneBtn = document.getElementById('nameDoneBtn');
 const nameError = document.getElementById('nameError');
 const scoreboardTableBody = document.getElementById('scoreboardTableBody');
 
-// === Audio Elements ===
-const bgMusic = document.getElementById('bg-music');
-const eatSound = document.getElementById('eat-sound');
-if (bgMusic) { bgMusic.volume = 0.08; }
-
 let currentPlayerName = "";
 
 // ========== Mobile Device Detection ==========
@@ -39,37 +34,19 @@ function isMobileDevice() {
 // ========== Game Variables ==========
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
-let snake, direction, nextDirection, score, gameLoop, isGameOver;
+let snake, direction, nextDirection, food, score, gameLoop, isGameOver;
 let snakeColor = localStorage.getItem('snakeColor') || '#3ca6a6';
 let headColor = localStorage.getItem('headColor') || '#f6d55c';
 let scaleColor = localStorage.getItem('scaleColor') || '#aaffee';
 
-// === Fruit Variables ===
-const FRUIT_EMOJIS = ["🍎", "🍏"];
-const CHERRY_EMOJI = "🍒";
-const CHERRY_BONUS = 5; // Points for cherry
-let appleFruit = { x: 0, y: 0, type: FRUIT_EMOJIS[0] };
-let cherryFruit = { x: 0, y: 0, type: CHERRY_EMOJI, visible: false };
-let nextAppleColor = 0; // 0 = red, 1 = green
-
-// === Cherry Timers ===
-let cherryTimer = null;
-let cherryTimeout = null;
-const CHERRY_PRESENT_TIME = 5000; // ms the cherry stays visible
-const CHERRY_RESPAWN_MIN = 10000; // min ms until next cherry
-const CHERRY_RESPAWN_MAX = 20000; // max ms until next cherry
-
-// === Pulsing Animation Variables ===
-let pulseStartTime = Date.now();
-
 // ========== Scoreboard Storage ==========
-const USE_API = false; // set to true to use a REST API, false for browser localStorage
+const USE_API = false;
 const API_URL = "https://api.jsonbin.io/v3/b/665cda3eacd3cb34a847c4f3";
 const API_KEY = "";
 
 async function getScoreboardAPI() {
   try {
-    const res = await fetch(API_URL, API_KEY ? { headers: { 'X-Access-Key': API_KEY } } : undefined);
+    const res = await fetch(API_URL, API_KEY ? {headers: {'X-Access-Key': API_KEY}} : undefined);
     const data = await res.json();
     return data.record || [];
   } catch {
@@ -87,7 +64,7 @@ async function saveScoreAPI(newEntry) {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      ...(API_KEY ? { 'X-Access-Key': API_KEY } : {})
+      ...(API_KEY ? {'X-Access-Key': API_KEY} : {})
     },
     body: JSON.stringify(scores)
   });
@@ -142,13 +119,13 @@ async function renderScoreboardTable() {
     if (i === 0) tr.classList.add("top1");
     else if (i === 1) tr.classList.add("top2");
     else if (i === 2) tr.classList.add("top3");
-    tr.innerHTML = `<td>${i + 1}</td><td>${name}</td><td>${score}</td>`;
+    tr.innerHTML = `<td>${i+1}</td><td>${name}</td><td>${score}</td>`;
     scoreboardTableBody.appendChild(tr);
   }
 }
 function escapeHTML(str) {
-  return (str || "").replace(/[&<>"']/g, m => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  return (str||"").replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[m]);
 }
 
@@ -163,64 +140,23 @@ function initGame() {
   nextDirection = 'right';
   score = 0;
   isGameOver = false;
-  nextAppleColor = 0;
-  placeApple();
-  removeCherry();
+  placeFood();
   scoreDiv.textContent = "Score: 0";
   clearInterval(gameLoop);
-  clearTimeout(cherryTimer);
-  clearTimeout(cherryTimeout);
-  scheduleCherry();
-  pulseStartTime = Date.now();
-  requestAnimationFrame(drawAnimated);
-
-  // Start the main game loop
-  gameLoop = setInterval(gameTick, 120); // Snake moves every 120 ms
+  // --- fix: make snake move by starting game loop ---
+  gameLoop = setInterval(gameTick, 100);
+  draw();
 }
 
-function scheduleCherry() {
-  clearTimeout(cherryTimeout);
-  cherryTimeout = setTimeout(() => {
-    placeCherry();
-    cherryFruit.visible = true;
-    cherryTimer = setTimeout(() => {
-      removeCherry();
-      scheduleCherry();
-    }, CHERRY_PRESENT_TIME);
-  }, Math.random() * (CHERRY_RESPAWN_MAX - CHERRY_RESPAWN_MIN) + CHERRY_RESPAWN_MIN);
-}
-
-function placeApple() {
-  const pos = randomFruitPosition(cherryFruit.visible ? [cherryFruit] : []);
-  appleFruit.x = pos.x;
-  appleFruit.y = pos.y;
-  appleFruit.type = FRUIT_EMOJIS[nextAppleColor];
-  nextAppleColor = 1 - nextAppleColor;
-}
-
-function placeCherry() {
-  const pos = randomFruitPosition([appleFruit]);
-  cherryFruit.x = pos.x;
-  cherryFruit.y = pos.y;
-  cherryFruit.type = CHERRY_EMOJI;
-  cherryFruit.visible = true;
-}
-
-function removeCherry() {
-  cherryFruit.visible = false;
-}
-
-function randomFruitPosition(exclude = []) {
-  let valid = false, pos = { x: 0, y: 0 };
+function placeFood() {
+  let valid = false;
   while (!valid) {
-    pos = {
+    food = {
       x: Math.floor(Math.random() * tileCount),
       y: Math.floor(Math.random() * tileCount)
     };
-    valid = !snake.some(segment => segment.x === pos.x && segment.y === pos.y)
-      && !exclude.some(e => e.x === pos.x && e.y === pos.y && e.visible !== false);
+    valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
   }
-  return pos;
 }
 
 function gameTick() {
@@ -240,34 +176,14 @@ function gameTick() {
     return;
   }
   snake.unshift(head);
-
-  let ate = false;
-  if (head.x === appleFruit.x && head.y === appleFruit.y) {
+  if (head.x === food.x && head.y === food.y) {
     score += 1;
     scoreDiv.textContent = `Score: ${score}`;
-    placeApple();
-    ate = true;
-    if (eatSound) { eatSound.currentTime = 0; eatSound.play(); }
-  }
-  if (cherryFruit.visible && head.x === cherryFruit.x && head.y === cherryFruit.y) {
-    score += CHERRY_BONUS;
-    scoreDiv.textContent = `Score: ${score}`;
-    removeCherry();
-    clearTimeout(cherryTimer);
-    scheduleCherry();
-    ate = true;
-    if (eatSound) { eatSound.currentTime = 0; eatSound.play(); }
-  }
-  if (!ate) {
+    placeFood();
+  } else {
     snake.pop();
   }
-}
-
-function drawAnimated() {
   draw();
-  if (!isGameOver) {
-    requestAnimationFrame(drawAnimated);
-  }
 }
 
 function draw() {
@@ -275,25 +191,7 @@ function draw() {
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  let t = (Date.now() - pulseStartTime) / 400;
-  let pulseApple = 1 + Math.sin(t) * 0.13;
-
-  drawFruitEmoji(
-    appleFruit.type,
-    appleFruit.x * gridSize + (gridSize - gridSize * pulseApple) / 2,
-    appleFruit.y * gridSize + (gridSize - gridSize * pulseApple) / 2,
-    gridSize * pulseApple
-  );
-
-  if (cherryFruit.visible) {
-    let pulseCherry = 1 + Math.sin(t + Math.PI / 2) * 0.13;
-    drawFruitEmoji(
-      cherryFruit.type,
-      cherryFruit.x * gridSize + (gridSize - gridSize * pulseCherry) / 2,
-      cherryFruit.y * gridSize + (gridSize - gridSize * pulseCherry) / 2,
-      gridSize * pulseCherry
-    );
-  }
+  drawApple(food.x * gridSize, food.y * gridSize, gridSize);
 
   for (let i = snake.length - 1; i > 0; i--) {
     drawSnakeSegmentSquare(snake[i].x * gridSize, snake[i].y * gridSize, snakeColor, false);
@@ -314,17 +212,6 @@ function draw() {
     ctx.font = "20px 'Press Start 2P', monospace";
     ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 25);
   }
-}
-
-function drawFruitEmoji(emoji, x, y, size) {
-  ctx.save();
-  ctx.font = `${size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.shadowColor = (emoji === CHERRY_EMOJI) ? "#f72585" : "#3ca6a6";
-  ctx.shadowBlur = 16;
-  ctx.fillText(emoji, x + size / 2, y + size / 2);
-  ctx.restore();
 }
 
 function drawSnakeSegmentSquare(x, y, color, isHead = false) {
@@ -360,6 +247,37 @@ function drawSnakeSegmentSquare(x, y, color, isHead = false) {
     ctx.fill();
     ctx.restore();
   }
+  ctx.restore();
+}
+
+function drawApple(x, y, size) {
+  ctx.save();
+  ctx.translate(x + size / 2, y + size / 2);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, size * 0.38, size * 0.44, 0, 0, 2 * Math.PI);
+  const grad = ctx.createRadialGradient(0, 0, size * 0.13, 0, 0, size * 0.44);
+  grad.addColorStop(0, "#fff");
+  grad.addColorStop(0.2, "#ff6e6e");
+  grad.addColorStop(1, "#c20000");
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(-size * 0.11, -size * 0.12, size * 0.08, size * 0.17, 0, 0, 2 * Math.PI);
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.fill();
+  ctx.save();
+  ctx.rotate(-0.5);
+  ctx.beginPath();
+  ctx.ellipse(size * 0.13, -size * 0.25, size * 0.11, size * 0.04, Math.PI / 6, 0, 2 * Math.PI);
+  ctx.fillStyle = "#2ecc40";
+  ctx.fill();
+  ctx.restore();
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 0.28);
+  ctx.lineTo(0, -size * 0.39);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#815c35";
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -498,7 +416,7 @@ function showGame() {
   restartBtn.style.display = '';
   backBtn.style.display = '';
   if (isMobileDevice()) {
-    mobileControls.style.display = 'flex';
+    mobileControls.style.display = '';
   } else {
     mobileControls.style.display = 'none';
   }
@@ -542,8 +460,6 @@ scaleColorPicker.addEventListener('input', () => {
 function endGame() {
   isGameOver = true;
   clearInterval(gameLoop);
-  clearTimeout(cherryTimer);
-  clearTimeout(cherryTimeout);
   draw();
   if (currentPlayerName && currentPlayerName.length > 1 && score > 0) {
     saveScore({ name: currentPlayerName, score }).then(renderScoreboardTable);
