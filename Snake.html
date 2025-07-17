@@ -56,8 +56,9 @@
 
   <!-- Gameplay UI -->
   <div class="gameplay-ui glass-game">
+    <!-- Level Display (now always present for script compatibility) -->
     <div id="levelDisplay" style="display:none"></div>
-    <canvas id="gameCanvas" width="480" height="480" style="display:none;"></canvas>
+    <canvas id="gameCanvas" width="400" height="400" style="display:none;"></canvas>
     <div id="score" class="neon-score" style="display:none;">Score: 0</div>
     <div class="hud-buttons">
       <button class="retro-btn" id="restartBtn" style="display:none;">Restart</button>
@@ -89,6 +90,7 @@
   <footer class="footer-retro">
     <span>Retro Snake &copy; 2025</span>
   </footer>
+  <!-- Script must be at end of body for DOM elements to exist before script is loaded -->
   <script src="script.js"></script>
 </body>
 </html>
