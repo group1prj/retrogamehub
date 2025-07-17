@@ -24,6 +24,26 @@ const nameDoneBtn = document.getElementById('nameDoneBtn');
 const nameError = document.getElementById('nameError');
 const scoreboardTableBody = document.getElementById('scoreboardTableBody');
 
+// ========== Level Display ==========
+let levelDiv = document.getElementById('levelDisplay');
+if (!levelDiv) {
+  levelDiv = document.createElement('div');
+  levelDiv.id = 'levelDisplay';
+  levelDiv.style.fontFamily = "'Press Start 2P', monospace";
+  levelDiv.style.color = "#f6d55c";
+  levelDiv.style.textAlign = "center";
+  levelDiv.style.fontSize = "1.1rem";
+  levelDiv.style.textShadow = "0 0 10px #00f2ea, 0 0 15px #3ca6a6";
+  levelDiv.style.marginBottom = "8px";
+  levelDiv.style.letterSpacing = "1.5px";
+  levelDiv.style.background = "rgba(18,18,28,0.74)";
+  levelDiv.style.borderRadius = "8px";
+  levelDiv.style.padding = "6px 18px";
+  levelDiv.style.display = "none";
+  // Insert after scoreDiv or before if mobile
+  scoreDiv.parentNode.insertBefore(levelDiv, scoreDiv.nextSibling);
+}
+
 let currentPlayerName = "";
 
 // ========== Mobile Device Detection ==========
@@ -38,6 +58,11 @@ let snake, direction, nextDirection, food, score, gameLoop, isGameOver;
 let snakeColor = localStorage.getItem('snakeColor') || '#3ca6a6';
 let headColor = localStorage.getItem('headColor') || '#f6d55c';
 let scaleColor = localStorage.getItem('scaleColor') || '#aaffee';
+// Levels & Obstacles
+let level = 1;
+let pointsToNextLevel = 20;
+let obstacles = [];
+const OBSTACLE_COLOR = "#e94f37";
 
 // ========== Scoreboard Storage ==========
 const USE_API = false;
@@ -129,8 +154,8 @@ function escapeHTML(str) {
   })[m]);
 }
 
-// ========== Game Functions ==========
-function initGame() {
+// ========== Level Functions ==========
+function resetSnake() {
   snake = [
     { x: Math.floor(tileCount / 2), y: Math.floor(tileCount / 2) },
     { x: Math.floor(tileCount / 2) - 1, y: Math.floor(tileCount / 2) },
@@ -138,12 +163,43 @@ function initGame() {
   ];
   direction = 'right';
   nextDirection = 'right';
+}
+
+function generateObstacles(count) {
+  obstacles = [];
+  while (obstacles.length < count) {
+    let pos = {
+      x: Math.floor(Math.random() * tileCount),
+      y: Math.floor(Math.random() * tileCount)
+    };
+    // Avoid snake, food, and duplicate obstacles
+    if (
+      !snake.some(seg => seg.x === pos.x && seg.y === pos.y) &&
+      !(food && food.x === pos.x && food.y === pos.y) &&
+      !obstacles.some(o => o.x === pos.x && o.y === pos.y)
+    ) {
+      obstacles.push(pos);
+    }
+  }
+}
+
+function updateLevelDisplay(show = true) {
+  levelDiv.textContent = `Level: ${level}`;
+  levelDiv.style.display = show ? "" : "none";
+}
+
+// ========== Game Functions ==========
+function initGame() {
+  level = 1;
+  pointsToNextLevel = 20;
+  obstacles = [];
+  resetSnake();
   score = 0;
   isGameOver = false;
   placeFood();
   scoreDiv.textContent = "Score: 0";
+  updateLevelDisplay(true);
   clearInterval(gameLoop);
-  // --- fix: make snake move by starting game loop ---
   gameLoop = setInterval(gameTick, 100);
   draw();
 }
@@ -155,7 +211,9 @@ function placeFood() {
       x: Math.floor(Math.random() * tileCount),
       y: Math.floor(Math.random() * tileCount)
     };
-    valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+    valid =
+      !snake.some(segment => segment.x === food.x && segment.y === food.y) &&
+      !obstacles.some(o => o.x === food.x && o.y === food.y);
   }
 }
 
@@ -171,15 +229,35 @@ function gameTick() {
   }
   head.x = (head.x + tileCount) % tileCount;
   head.y = (head.y + tileCount) % tileCount;
+
+  // Check for obstacle collision
+  if (obstacles.some(o => o.x === head.x && o.y === head.y)) {
+    endGame();
+    return;
+  }
+
+  // Check for self collision
   if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
     endGame();
     return;
   }
+
   snake.unshift(head);
   if (head.x === food.x && head.y === food.y) {
     score += 1;
     scoreDiv.textContent = `Score: ${score}`;
-    placeFood();
+    // Level up if needed
+    if (score >= pointsToNextLevel) {
+      level++;
+      pointsToNextLevel += 20;
+      resetSnake();
+      // Add easy random obstacles, not too many
+      generateObstacles(2 + level); // For example, Level 2: 4, Level 3: 5...
+      updateLevelDisplay();
+      placeFood();
+    } else {
+      placeFood();
+    }
   } else {
     snake.pop();
   }
@@ -190,6 +268,16 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw obstacles
+  ctx.fillStyle = OBSTACLE_COLOR;
+  obstacles.forEach(o => {
+    ctx.fillRect(o.x * gridSize, o.y * gridSize, gridSize, gridSize);
+    // Optional: add border for visibility
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(o.x * gridSize, o.y * gridSize, gridSize, gridSize);
+  });
 
   drawApple(food.x * gridSize, food.y * gridSize, gridSize);
 
@@ -387,6 +475,7 @@ function showMainMenu() {
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
   mobileControls.style.display = 'none';
+  updateLevelDisplay(false);
   renderScoreboardTable();
 }
 function showCustomize() {
@@ -397,6 +486,7 @@ function showCustomize() {
   restartBtn.style.display = 'none';
   backBtn.style.display = 'none';
   mobileControls.style.display = 'none';
+  updateLevelDisplay(false);
   colorBtns.forEach(btn => {
     if (btn.dataset.color.toLowerCase() === snakeColor.toLowerCase()) {
       btn.classList.add('selected');
@@ -415,6 +505,7 @@ function showGame() {
   scoreDiv.style.display = '';
   restartBtn.style.display = '';
   backBtn.style.display = '';
+  updateLevelDisplay(true);
   if (isMobileDevice()) {
     mobileControls.style.display = '';
   } else {
