@@ -316,31 +316,43 @@ nav ul.nav-links li a:hover {
 }
 .team-grid {
   display: flex;
-  gap: 2em;
-  flex-wrap: wrap;
+  gap: 3rem; /* More space between cards */
   justify-content: center;
-}
-.team-card {
-  text-align: center;
-  background: var(--bg-section);
-  border-radius: var(--card-radius);
-  padding: 1em;
-  width: 140px;
-  box-shadow: var(--shadow);
-  border: 1px solid #e5e5e5;
-}
-.team-card img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  margin-bottom: 0.6em;
-  background: var(--accent-blue);
-}
-.role {
-  font-size: 0.8em;
-  color: var(--accent);
+  margin-top: 2rem;
 }
 
+.team-card {
+  background: #24305E;
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  width: 250px; /* Increased width */
+}
+
+.team-img {
+  width: 140px;      /* Bigger image size */
+  height: 140px;
+  object-fit: cover;
+  border-radius: 50%; /* Circular image */
+  border: 4px solid #ffcc00; /* Pixel-art style border */
+  margin-bottom: 1rem;
+  background: #fff;
+}
+
+.team-card h4 {
+  font-size: 1.3rem;
+  margin-top: 0.5rem;
+  color: #fff;
+}
+
+.role {
+  display: block;
+  font-size: 1rem;
+  color: #ffcc00;
+  margin-top: 0.25rem;
+  font-family: 'Press Start 2P', cursive; /* pixel font if available */
+}
 /* Community */
 .community-content {
   display: flex;
