@@ -1,0 +1,284 @@
+body {
+  min-height: 100vh;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #212428 0%, #2e335a 100%);
+  position: relative;
+  overflow-x: hidden;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#bg-pixels {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+#bg-pixels:before, #bg-pixels:after {
+  content: "";
+  position: absolute;
+  width: 100vw; height: 100vh;
+  background: url('data:image/svg+xml;utf8,<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="19" y="19" width="10" height="10" fill="%2390e0ef" fill-opacity="0.08"/><rect x="0" y="0" width="3" height="3" fill="%23f72585" fill-opacity="0.09"/></svg>');
+  opacity: 0.8;
+}
+#bg-pixels:after {
+  background: url('data:image/svg+xml;utf8,<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="29" y="29" width="6" height="6" fill="%233ca6a6" fill-opacity="0.10"/><rect x="10" y="35" width="2" height="2" fill="%23f6d55c" fill-opacity="0.07"/></svg>');
+  opacity: 0.5;
+}
+
+.retro-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 2.8rem;
+  letter-spacing: 2.5px;
+  color: #f6d55c;
+  text-shadow:
+    0 2px 0 #000,
+    0 0 14px #00f2ea,
+    0 0 30px #3ca6a6;
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  filter: drop-shadow(0 6px 18px #00f2ea99);
+  line-height: 1.2;
+}
+
+.menu {
+  max-width: 370px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.glass-card {
+  background: rgba(33, 36, 56, 0.90);
+  border-radius: 22px;
+  box-shadow: 0 12px 36px 0 #1f1f2baa, 0 1.5px 16px #00f2ea66 inset;
+  padding: 40px 38px 32px 38px;
+  border: 2.5px solid #fff3;
+  backdrop-filter: blur(6px);
+  margin: 0 auto 24px auto;
+}
+
+#highscorePanel {
+  margin: 34px 0 0 0;
+  width: 100%;
+}
+
+.highscore-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.25rem;
+  color: #7cffb1;
+  text-align: center;
+  text-shadow: 0 0 12px #90e0ef, 0 2px 0 #111;
+  margin: 0 0 16px 0;
+  letter-spacing: 2.5px;
+}
+
+.scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(20,40,50,0.25);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 8px #00f2ea33;
+  margin: 0 auto 0 auto;
+}
+.scoreboard-table th, .scoreboard-table td {
+  font-family: 'Press Start 2P', monospace;
+  padding: 10px 2px;
+  font-size: 1rem;
+  color: #f6d55c;
+  text-shadow: 0 0 4px #7cffb1;
+  border-bottom: 2px solid #00f2ea44;
+  text-align: center;
+}
+.scoreboard-table th {
+  background: #1b1b25;
+  color: #7cffb1;
+  font-size: 1.12rem;
+  border-bottom: 3px solid #00f2ea;
+  letter-spacing: 2px;
+}
+.scoreboard-table tr.top1 td {
+  color: #ffe066;
+  background: rgba(255,255,60,0.05);
+  font-size: 1.09rem;
+  text-shadow: 0 0 8px #ffe066, 0 2px 0 #222;
+}
+.scoreboard-table tr.top2 td {
+  color: #7cffb1;
+  background: rgba(127,255,177,0.07);
+}
+.scoreboard-table tr.top3 td {
+  color: #90e0ef;
+  background: rgba(144,224,239,0.07);
+}
+.scoreboard-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Gameplay & Glass --- */
+.glass-game {
+  margin: 0 auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+}
+.canvas-glass {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  padding: 6px 2px 6px 2px;
+}
+#next-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 0;
+}
+#next-label {
+  color: #f6d55c;
+  font-size: 0.92em;
+  margin-bottom: 6px;
+  text-shadow: 0 0 6px #00f2ea;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.08em;
+}
+#next-canvas {
+  background: #222a;
+  border: 2.5px solid #7cffb1cc;
+  border-radius: 10px;
+  margin: 0;
+  display: block;
+  box-shadow: 0 0 12px #00f2ea99;
+  width: 120px;
+  height: 120px;
+  max-width: 120px;
+  max-height: 120px;
+  margin-bottom: 2px;
+}
+.retro-info {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.05em;
+  color: #7cffb1;
+  background: rgba(18,18,28,0.74);
+  border-radius: 8px;
+  padding: 7px 18px;
+  text-shadow: 0 0 8px #00f2ea, 0 0 7px #3ca6a6;
+  letter-spacing: 0.07em;
+  margin-bottom: -6px;
+}
+.retro-controls {
+  font-size: 0.92em;
+  color: #f6d55c;
+  margin-bottom: 0.7em;
+  text-shadow: 0 0 6px #00f2ea;
+  letter-spacing: 0.04em;
+}
+canvas#game-canvas {
+  background: linear-gradient(135deg, #24243e 70%, #1b1b25 100%);
+  border: 4px solid #3ca6a6;
+  box-shadow: 0 0 24px 4px #00f2ea66, 0 0 1.5px 2px #f72585c0;
+  border-radius: 18px;
+  transition: box-shadow 0.2s;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+/* --- Buttons --- */
+.retro-btn {
+  font-family: 'Press Start 2P', monospace;
+  color: #fff;
+  background: linear-gradient(90deg, #3ca6a6 70%, #00f2ea 100%);
+  border: 3px solid #f6d55c;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 14px 36px;
+  box-shadow: 0 2px 0 #111, 0 0 14px #00f2ea44;
+  letter-spacing: 1.2px;
+  margin-bottom: 12px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.2s, background 0.2s;
+  outline: none;
+}
+.retro-btn:active {
+  background: linear-gradient(90deg, #f72585 80%, #3ca6a6 100%);
+  color: #fff;
+  transform: scale(0.97) translateY(2px);
+}
+
+/* --- Footer Themed Text Only --- */
+.footer-retro {
+  font-family: 'Press Start 2P', monospace;
+  color: #7cffb1;
+  font-size: 1.1rem;
+  text-align: center;
+  letter-spacing: 0.08em;
+  margin-top: 40px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 8px #00f2ea, 0 1.5px 0 #24243e;
+}
+.footer-retro .footer-title {
+  color: #f6d55c;
+  text-shadow: 0 0 8px #3ca6a6, 0 2px 0 #ffe066;
+  margin-right: 10px;
+}
+.footer-retro .footer-by {
+  color: #7cffb1;
+  font-size: 0.92em;
+  margin-right: 7px;
+  margin-left: 2px;
+  text-shadow: 0 0 7px #00f2ea, 0 1px 0 #24243e;
+}
+.footer-retro .footer-brand {
+  color: #f72585;
+  text-shadow: 0 0 10px #00f2ea, 0 1px 0 #ffe066;
+  margin-left: 3px;
+  letter-spacing: 0.09em;
+  font-size: 1.08em;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .glass-card, .menu {
+    padding: 20px 5vw 18px 5vw;
+    max-width: 97vw;
+    font-size: 1rem;
+  }
+  .glass-game {
+    padding: 0;
+  }
+  .canvas-glass {
+    flex-direction: column;
+    align-items: center;
+    gap: 4vw;
+    padding: 2vw 1vw 2vw 1vw;
+  }
+  #next-container {
+    margin-left: 0;
+  }
+  #next-canvas {
+    width: 45vw !important;
+    height: 45vw !important;
+    max-width: 80vw;
+    max-height: 80vw;
+  }
+  canvas#game-canvas {
+    width: 80vw !important;
+    height: 160vw !important;
+    max-width:98vw;
+    max-height:98vw;
+  }
+  .scoreboard-table {
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,14 @@
+<svg width="200" height="150" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cart Basket -->
+  <rect x="40" y="50" width="120" height="50" rx="10" fill="#cfd8dc" stroke="#607d8b" stroke-width="3"/>
+  <!-- Handle -->
+  <rect x="30" y="35" width="10" height="40" rx="5" fill="#607d8b"/>
+  <!-- Wheels -->
+  <circle cx="60" cy="110" r="12" fill="#455a64" stroke="#222" stroke-width="2"/>
+  <circle cx="140" cy="110" r="12" fill="#455a64" stroke="#222" stroke-width="2"/>
+  <!-- Wheel Hubs -->
+  <circle cx="60" cy="110" r="5" fill="#fff"/>
+  <circle cx="140" cy="110" r="5" fill="#fff"/>
+  <!-- Cart edge -->
+  <rect x="38" y="48" width="124" height="5" rx="2" fill="#90a4ae"/>
+</svg>

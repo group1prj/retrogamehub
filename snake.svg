@@ -1,10 +1,18 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" fill="#22223b"/>
-  <rect x="16" y="32" width="32" height="8" fill="#39ff14"/>
-  <rect x="40" y="24" width="8" height="16" fill="#39ff14"/>
-  <rect x="40" y="16" width="8" height="8" fill="#39ff14"/>
-  <rect x="48" y="16" width="8" height="8" fill="#39ff14"/>
-  <rect x="52" y="20" width="4" height="4" fill="#f72585"/>
-  <rect x="46" y="18" width="2" height="2" fill="#232946"/>
-  <rect x="50" y="18" width="2" height="2" fill="#232946"/>
+<svg width="100" height="100" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Snake body -->
+  <circle cx="35" cy="60" r="14" fill="#388e3c" stroke="#1b5e20" stroke-width="3"/>
+  <circle cx="55" cy="60" r="14" fill="#43a047" stroke="#1b5e20" stroke-width="3"/>
+  <circle cx="75" cy="60" r="14" fill="#66bb6a" stroke="#1b5e20" stroke-width="3"/>
+  <circle cx="95" cy="60" r="14" fill="#81c784" stroke="#1b5e20" stroke-width="3"/>
+  <!-- Snake head -->
+  <ellipse cx="105" cy="60" rx="11" ry="10" fill="#388e3c" stroke="#1b5e20" stroke-width="3"/>
+  <!-- Eyes -->
+  <circle cx="108" cy="57" r="2" fill="#fff"/>
+  <circle cx="108" cy="63" r="2" fill="#fff"/>
+  <circle cx="109" cy="57" r="1" fill="#222"/>
+  <circle cx="109" cy="63" r="1" fill="#222"/>
+  <!-- Tongue -->
+  <line x1="115" y1="60" x2="120" y2="60" stroke="red" stroke-width="2"/>
+  <line x1="120" y1="60" x2="118" y2="58" stroke="red" stroke-width="2"/>
+  <line x1="120" y1="60" x2="118" y2="62" stroke="red" stroke-width="2"/>
 </svg>

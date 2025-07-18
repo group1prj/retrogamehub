@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tetris</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style-t.css">
+  <style>
+    #mainMenu, .gameplay-ui {
+      display: none;
+    }
+    #mainMenu.active, .gameplay-ui.active {
+      display: flex;
+    }
+    #nameModal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(20,20,40,0.88);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 30;
+    }
+    #nameModal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: rgba(33, 36, 56, 0.95);
+      border-radius: 22px;
+      padding: 36px 38px 24px 38px;
+      box-shadow: 0 12px 36px 0 #1f1f2baa, 0 1.5px 16px #00f2ea66 inset;
+      border: 2.5px solid #7cffb1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 270px;
+      max-width: 95vw;
+    }
+    .input-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.05rem;
+      color: #7cffb1;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .name-input {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.08rem;
+      border-radius: 8px;
+      border: 2.5px solid #00f2ea;
+      outline: none;
+      background: #181e3c;
+      color: #f6d55c;
+      box-shadow: 0 0 6px #3ca6a633 inset;
+      padding: 14px 22px;
+      margin-bottom: 9px;
+      margin-top: 3px;
+      width: 100%;
+      box-sizing: border-box;
+      letter-spacing: 1px;
+    }
+    .input-error {
+      color: #e94f37;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.93rem;
+      margin-bottom: 7px;
+      min-height: 1.4em;
+      text-align: center;
+    }
+    #nameDoneBtn {
+      margin-top: 4px;
+      width: 100%;
+      min-width: 120px;
+    }
+    @media (max-width: 540px) {
+      .modal-content {
+        padding: 16px 6vw 12px 6vw;
+        min-width: 0;
+      }
+      .name-input {
+        font-size: 0.98rem;
+        padding: 10px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="bg-pixels"></div>
+  <h1 class="retro-title">TETRIS</h1>
+
+  <!-- Main Menu -->
+  <div id="mainMenu" class="menu glass-card active">
+    <button class="retro-btn" id="playBtn">Play</button>
+    <div id="highscorePanel" style="margin-top:32px;">
+      <h2 class="highscore-title">Highscores</h2>
+      <table id="scoreboardTable" class="scoreboard-table">
+        <thead>
+          <tr><th>Rank</th><th>Name</th><th>Score</th></tr>
+        </thead>
+        <tbody id="scoreboardTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gameplay UI -->
+  <div class="gameplay-ui glass-game">
+    <div class="retro-info" style="margin-bottom:8px;">
+      <span>Score: <span id="score">0</span></span>
+      &nbsp;•&nbsp;
+      <span>Lines: <span id="lines">0</span></span>
+    </div>
+    <div class="canvas-glass">
+      <canvas id="game-canvas" width="280" height="560"></canvas>
+      <div id="next-container">
+        <div id="next-label">Next</div>
+        <canvas id="next-canvas" width="120" height="120"></canvas>
+      </div>
+    </div>
+    <div class="retro-controls" style="margin-bottom:12px;">
+      ← →: Move &nbsp;|&nbsp; ↑: Rotate &nbsp;|&nbsp; ↓: Soft Drop &nbsp;|&nbsp; Space: Hard Drop
+    </div>
+    <div class="hud-buttons">
+      <button class="retro-btn" id="restartBtn">Restart</button>
+      <button class="retro-btn danger" id="backBtn">Back</button>
+    </div>
+  </div>
+
+  <!-- Name Entry Modal -->
+  <div id="nameModal">
+    <div class="modal-content">
+      <label for="playerName" class="input-label">Enter your name:</label>
+      <input id="playerName" maxlength="16" autocomplete="off" class="name-input" placeholder="Player Name">
+      <div id="nameError" class="input-error"></div>
+      <button class="retro-btn" id="nameDoneBtn">Done</button>
+    </div>
+  </div>
+
+  <footer class="footer-retro" id="retro-footer">
+    <span class="footer-title">Retro Tetris &copy; 2025</span>
+    <span class="footer-by"> by:</span>
+    <span class="footer-brand">Retro Game Hub</span>
+  </footer>
+
+  <script src="game.js"></script>
+</body>
+</html>
