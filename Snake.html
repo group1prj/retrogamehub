@@ -73,6 +73,10 @@
         <button class="mobile-btn" id="btnRight">&#8594;</button>
       </div>
     </div>
+    <!-- Background music -->
+    <audio id="bgMusic" src="background-music.mp3" loop preload="auto" style="display:none"></audio>
+    <!-- Eat sound effect -->
+    <audio id="eatSound" src="eat-sound.mp3" preload="auto" style="display:none"></audio>
   </div>
 
   <!-- Name Entry Modal -->
@@ -88,6 +92,43 @@
   <footer class="footer-retro">
     <span>Retro Snake &copy; 2025</span>
   </footer>
+  <script>
+    // Background music controls
+    const bgMusic = document.getElementById('bgMusic');
+    function playMusic() {
+      if (bgMusic) {
+        bgMusic.volume = 0.3;
+        bgMusic.currentTime = 0;
+        bgMusic.play();
+      }
+    }
+    function pauseMusic() {
+      if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+      }
+    }
+
+    // Example Play/Restart/Back button hooks
+    document.getElementById('playBtn').addEventListener('click', function () {
+      playMusic();
+      // Add your game start logic here...
+    });
+    document.getElementById('restartBtn').addEventListener('click', function () {
+      playMusic();
+      // Add your game restart logic here...
+    });
+    document.getElementById('backBtn').addEventListener('click', function () {
+      pauseMusic();
+      // Add your game back-to-menu logic here...
+    });
+
+    // If you have a gameOver function, call pauseMusic() there too
+    // function gameOver() {
+    //   pauseMusic();
+    //   // ...other game over logic...
+    // }
+  </script>
   <script src="script-j.js"></script>
 </body>
 </html>

@@ -69,6 +69,7 @@ function tick() {
 function updateScoreUI() {
   document.getElementById("score").textContent = score;
   document.getElementById("lines").textContent = lines;
+  document.getElementById("widthValue").textContent = COLS;
 }
 
 function resetCurrent() {
@@ -90,11 +91,47 @@ function endGame() {
   setTimeout(() => showMainMenu(), 1000);
 }
 
+// Draw grid and border for the glass (playfield)
+function drawGridAndGlass() {
+  // Draw background grid
+  ctx.save();
+  // Draw the glass border ("glass" is the playfield)
+  ctx.strokeStyle = "#7cffb1";
+  ctx.lineWidth = 3;
+  ctx.shadowColor = "#00f2ea";
+  ctx.shadowBlur = 12;
+  ctx.strokeRect(0.5, 0.5, COLS * BLOCK - 1, ROWS * BLOCK - 1);
+  ctx.shadowBlur = 0;
+
+  // Draw grid lines
+  ctx.strokeStyle = "#3ca6a655";
+  ctx.lineWidth = 1;
+  for (let x = 1; x < COLS; x++) {
+    ctx.beginPath();
+    ctx.moveTo(x * BLOCK + 0.5, 0);
+    ctx.lineTo(x * BLOCK + 0.5, ROWS * BLOCK);
+    ctx.stroke();
+  }
+  for (let y = 1; y < ROWS; y++) {
+    ctx.beginPath();
+    ctx.moveTo(0, y * BLOCK + 0.5);
+    ctx.lineTo(COLS * BLOCK, y * BLOCK + 0.5);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw glass/grid first
+  drawGridAndGlass();
+
+  // Then draw the placed blocks
   for (let y = 0; y < ROWS; y++)
     for (let x = 0; x < COLS; x++)
       if (board[y][x]) drawBlock(ctx, x, y, board[y][x]);
+  // Draw the falling Tetromino
   for (const [dx, dy] of current.shape) {
     const x = pos.x + dx, y = pos.y + dy;
     if (y >= 0) drawBlock(ctx, x, y, current.color, true);
@@ -281,4 +318,8 @@ window.onload = () => {
   nextCtx = nextCanvas.getContext("2d");
   renderScoreboard();
   showMainMenu();
+  // Display initial width value
+  if (document.getElementById("widthValue")) {
+    document.getElementById("widthValue").textContent = COLS;
+  }
 };
