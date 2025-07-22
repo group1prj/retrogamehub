@@ -47,19 +47,19 @@
       <h2 class="section-title pixel-header">Featured Games</h2>
       <div class="featured-grid">
         <div class="featured-card">
-          <img src="assets/img/game1.png" alt="Game 1 Cover">
-          <h3>Pixel Quest</h3>
-          <p>Embark on a retro RPG adventure!</p>
+          <img src="tetris.svg" alt="Game 1 Cover">
+          <h3>Tetris</h3>
+          <p>Fit the pieces, shape your world!</p>
         </div>
         <div class="featured-card">
-          <img src="assets/img/game2.png" alt="Game 2 Cover">
-          <h3>Neon Racer</h3>
-          <p>Race through neon-lit streets in classic style.</p>
+          <img src="snake.svg" alt="Game 2 Cover">
+          <h3>Snake</h3>
+          <p>Eat, Loop, Repeat.</p>
         </div>
         <div class="featured-card">
-          <img src="assets/img/game3.png" alt="Game 3 Cover">
-          <h3>Block Breaker</h3>
-          <p>Smash blocks and rack up the high score!</p>
+          <img src="tictactoe.svg" alt="Game 3 Cover">
+          <h3>Tic Tac Toe</h3>
+          <p>Be X or be O try to get three in a row!</p>
         </div>
       </div>
     </section>
@@ -103,7 +103,7 @@
           </div>
         </div>
          <div class="game-card">
-          <img src="snake.svg" alt="Game 3 Cover">
+          <img src="tictactoe.svg" alt="Game 3 Cover">
           <div class="game-info">
             <h3>Tic Tac Toe</h3>
             <div class="platform-tags">
@@ -198,15 +198,16 @@
     <!-- Contact Page -->
     <section class="section" id="contact">
       <h2 class="section-title pixel-header">Contact Us</h2>
-      <form class="contact-form">
+      <!-- Updated form to send to athianjosue@gmail.com via Formspree -->
+      <form class="contact-form" action="https://formspree.io/f/xoqgykek" method="POST">
         <label for="contact-name">Name:</label>
-        <input type="text" id="contact-name" name="contact-name" required>
+        <input type="text" id="contact-name" name="name" required>
 
         <label for="contact-email">Email:</label>
-        <input type="email" id="contact-email" name="contact-email" required>
+        <input type="email" id="contact-email" name="email" required>
 
         <label for="contact-message">Message:</label>
-        <textarea id="contact-message" name="contact-message" rows="4" required></textarea>
+        <textarea id="contact-message" name="message" rows="4" required></textarea>
 
         <button type="submit" class="btn">Send</button>
       </form>
