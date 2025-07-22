@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tic Tac Toe: Canvas Edition</title>
+  <style>
+    body {
+      margin: 0;
+      background: #121212;
+      font-family: 'Segoe UI', sans-serif;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 { color: #e91e63; margin-top: 20px; }
+    canvas {
+      background: #1e1e1e;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    #menu, #status, #backBtn {
+      margin: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    button {
+      background: #333;
+      color: #eee;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: background 0.3s;
+    }
+    button:hover { background: #555; }
+    #status p {
+      font-size: 1.2em;
+      margin: 10px;
+      transition: opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe</h1>
+  <div id="menu">
+    <p>Select Difficulty:</p>
+    <button onclick="startGame('easy')">Easy</button>
+    <button onclick="startGame('medium')">Medium</button>
+    <button onclick="startGame('hard')">Hard</button>
+  </div>
+  <canvas id="board" width="300" height="300"></canvas>
+  <div id="status"><p></p></div>
+  <div id="backBtn"><button onclick="resetToMenu()">Back to Menu</button></div>
+
+  <script>
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    const cellSize = 100;
+    let board = Array(9).fill('');
+    let currentPlayer = 'X';
+    let aiLevel = 'easy';
+    let gameActive = false;
+
+    const statusText = document.querySelector('#status p');
+    const menu = document.getElementById('menu');
+    const backBtn = document.getElementById('backBtn');
+    canvas.style.display = 'none';
+    backBtn.style.display = 'none';
+
+    function startGame(level) {
+      aiLevel = level;
+      board = Array(9).fill('');
+      currentPlayer = 'X';
+      gameActive = true;
+      menu.style.display = 'none';
+      canvas.style.display = 'block';
+      backBtn.style.display = 'block';
+      drawBoard();
+      updateStatus(`Your turn (X)`);
+    }
+
+    function resetToMenu() {
+      menu.style.display = 'flex';
+      canvas.style.display = 'none';
+      backBtn.style.display = 'none';
+      statusText.textContent = '';
+    }
+
+    canvas.addEventListener('click', e => {
+      if (!gameActive || currentPlayer !== 'X') return;
+      const x = Math.floor(e.offsetX / cellSize);
+      const y = Math.floor(e.offsetY / cellSize);
+      const idx = y * 3 + x;
+      if (!board[idx]) {
+        board[idx] = currentPlayer;
+        drawBoard();
+        if (checkWin(currentPlayer)) {
+          gameActive = false;
+          updateStatus(`You win!`);
+        } else if (board.every(c => c)) {
+          gameActive = false;
+          updateStatus(`It's a tie!`);
+        } else {
+          currentPlayer = 'O';
+          updateStatus(`AI thinking...`);
+          setTimeout(() => aiMove(), 500);
+        }
+      }
+    });
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, 300, 300);
+      ctx.strokeStyle = '#eee';
+      ctx.lineWidth = 2;
+      for (let i = 1; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, 300);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * cellSize);
+        ctx.lineTo(300, i * cellSize);
+        ctx.stroke();
+      }
+      board.forEach((mark, idx) => {
+        if (mark) drawMark(mark, idx);
+      });
+    }
+
+    function drawMark(mark, idx) {
+      const x = (idx % 3) * cellSize + cellSize / 2;
+      const y = Math.floor(idx / 3) * cellSize + cellSize / 2;
+      ctx.fillStyle = mark === 'X' ? '#e91e63' : '#00bcd4';
+      ctx.font = '40px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(mark, x, y);
+    }
+
+    function updateStatus(msg) {
+      statusText.style.opacity = 0;
+      setTimeout(() => {
+        statusText.textContent = msg;
+        statusText.style.opacity = 1;
+      }, 300);
+    }
+
+    function aiMove() {
+      let idx;
+      if (aiLevel === 'easy') {
+        const empty = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+        idx = empty[Math.floor(Math.random() * empty.length)];
+      } else if (aiLevel === 'medium') {
+        idx = findMediumMove();
+      } else {
+        idx = minimax(board, 'O').index;
+      }
+
+      board[idx] = 'O';
+      drawBoard();
+      if (checkWin('O')) {
+        gameActive = false;
+        updateStatus('AI wins!');
+      } else if (board.every(c => c)) {
+        gameActive = false;
+        updateStatus('It\'s a tie!');
+      } else {
+        currentPlayer = 'X';
+        updateStatus('Your turn (X)');
+      }
+    }
+
+    function checkWin(p) {
+      const w = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      return w.some(line => line.every(i => board[i] === p));
+    }
+
+    function findMediumMove() {
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = 'O';
+          if (checkWin('O')) { board[i] = ''; return i; }
+          board[i] = '';
+        }
+      }
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = 'X';
+          if (checkWin('X')) { board[i] = ''; return i; }
+          board[i] = '';
+        }
+      }
+      return board.findIndex(c => c === '');
+    }
+
+    function minimax(b, player) {
+      const hu = 'X', ai = 'O';
+      const empty = b.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+
+      if (checkWin(hu)) return { score: -10 };
+      if (checkWin(ai)) return { score: 10 };
+      if (empty.length === 0) return { score: 0 };
+
+      const moves = [];
+      for (let i of empty) {
+        const move = { index: i };
+        b[i] = player;
+        move.score = (player === ai)
+          ? minimax(b, hu).score
+          : minimax(b, ai).score;
+        b[i] = '';
+        moves.push(move);
+      }
+
+      let bestMove, bestScore = player === ai ? -Infinity : Infinity;
+      moves.forEach((m, i) => {
+        if ((player === ai && m.score > bestScore) ||
+            (player === hu && m.score < bestScore)) {
+          bestScore = m.score;
+          bestMove = i;
+        }
+      });
+
+      return moves[bestMove];
+    }
+  </script>
+</body>
+</html>
